@@ -33,14 +33,14 @@ body {
 }
 
 #menu {
-    height: 606px;
+    height: calc(606px + 75px);
     width: 505px;
     left: 50%;
     background-color: #fff;
     border: 3px solid #aaa;
     border-radius: 5px;
     position: absolute;
-    transition: transform 0.7s ease;
+    transition: transform 0.9s ease-out;
 }
 
 #menu h2 {
@@ -52,7 +52,7 @@ body {
 }
 
 .open {
-    transform: translate(-50%, 0);
+    transform: translate(-50%, -75px);
 }
 
 button#newGame {

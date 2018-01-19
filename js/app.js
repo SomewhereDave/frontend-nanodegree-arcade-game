@@ -1,6 +1,7 @@
 let allEnemies = [],
     player,
     enemy,
+    gem,
     countdown;
 
 // Enemies our player must avoid
@@ -35,13 +36,13 @@ Enemy.prototype = {
 
     //Get a random row to place the bug after each screen crossing
     getRandomRow: function() {
-        var row = Math.floor((Math.random()  * (4 - 1) + 1));
+        var row = Math.floor((Math.random()  * 4 + 1));
         return (83 * row) - 18;
     },
 
     //Get a random speed for bugs after each screen crossing
     getRandomSpeed: function () {
-        return 200 + Math.random() * 100;
+        return 200 + Math.random() * 180;
     },
 
     // Draw the enemy on the screen, required method for game
@@ -64,6 +65,7 @@ var Player = function(lifes) {
     this.addLife(),
     this.addLife(),
     this.addLife()
+    this.score = 0;
 }
 
 Player.prototype = {
@@ -100,24 +102,46 @@ Player.prototype = {
         }
     },
 
-    checkCollison: function() {
-        //Check for collision with bug
+    checkGemCollision: function() {
+        //Check for collision between player and bug
+        //Axis-Aligned Bounding Box
+        if (this.x < gem.x + 101 &&
+            this.x + 101 > gem.x &&
+            //lower gem side overlaps upper player side
+            this.y + (171 - 88) < gem.y + (171 - 5) &&
+            //lower player side overlaps upper gem side
+            this.y + (171 - 18) > gem.y + (171 - 112) + 24) {
+                //Collision
+                this.addToScore();
+                document.getElementById('score').innerText = this.score.toString();
+                gem = new Gem(getRandomInt(1,3));
+        }
+    },
+
+    checkBugCollison: function() {
+        //Check for collision between player and bug
+        //Axis-Aligned Bounding Box
         for(var i = 0; i < allEnemies.length; i++) {
 
             if(this.x < allEnemies[i].x + 50 &&
                 this.x + 50 > allEnemies[i].x &&
                 this.y + 120 < allEnemies[i].y + (171-18) &&
-                this.y + (171-18) > allEnemies[i].y + 120
-            ) {
-                this.x = (505 - 101)/2;
-                this.y = 83*5 - 18;
-                this.removeLife();
+                this.y + (171-18) > allEnemies[i].y + 120) {
+                    //Collision
+                    this.x = (505 - 101)/2;
+                    this.y = 83*5 - 18;
+                    this.removeLife();
             }
         }
     },
 
     update: function() {
-        this.checkCollison();
+        this.checkBugCollison();
+        this.checkGemCollision();
+    },
+
+    addToScore: function() {
+        this.score += gem.points;
     },
 
     addLife() {
@@ -145,27 +169,45 @@ Player.prototype = {
 
 
 
-var Gem = function(color) {
+var Gem = function(colorCode,x,y) {
 
-    this.x = 0;
-    this.y = 0;
+    this.x = x || this.getRandomColumn();
+    this.y = y || this.getRandomRow();
 
-    switch(color) {
-        case 'blue':
+    switch(colorCode) {
+        case 1:
             this.sprite = 'images/Gem Blue.png';
             this.points = 25;
             break;
-        case 'green':
+        case 2:
             this.sprite = 'images/Gem Green.png';
             this.points = 50;
             break;
-        case 'orange':
+        case 3:
             this.sprite = 'images/Gem Orange.png';
             this.points = 100;
             break;
         default:
+            this.sprite = 'images/Gem Blue.png';
+            this.points = 25;
     }
 }
+
+//Get a random row to place the gem
+Gem.prototype = {
+    getRandomRow: function() {
+        var row = Math.floor((Math.random()  * (5 - 1) + 1));
+        return (83 * row) - 28;
+    },
+    getRandomColumn: function() {
+        var column = Math.floor(Math.random() * 5);
+        return  101 * column;
+    },
+    render: function() {
+        ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+    }
+}
+
 
 
 
@@ -208,16 +250,21 @@ Countdown.prototype = {
 // Place all enemy objects in an array called allEnemies
 // Place the player object in a variable called player
 function gameStart() {
+    //Reset score trackers
+    document.getElementById('score').innerText = '0';
+    document.getElementById('finalScore').innerText = '0';
     allEnemies = [];
     function initEnemies(row) {
         bug = new Enemy({x:-101,y:(83 * row) -18});
         allEnemies.push(bug);
     }
-    for( var i = 1; i <= 3; i++) {
+    var bugs = 0;
+    for( var i = 1; i <= bugs.length; i++) {
         initEnemies(i);
     }
     player = new Player();
-    countdown = new Countdown(20, 'timer');
+    gem = new Gem(getRandomInt(1,3));
+    countdown = new Countdown(3, 'timer');
 }
 //Initial start
 gameStart();
@@ -226,9 +273,11 @@ gameStart();
 //if player runs out of time or lifes
 function gameOver() {
     document.getElementById('menu').className = 'open';
+    document.getElementById('finalScore').innerText = player.score.toString();
     while(player.lifes > 0) {
         player.removeLife();
     }
+    //Prevents further execution of countdown interval
     clearInterval(countdown.interval);
 }
 
@@ -251,3 +300,10 @@ document.addEventListener('keyup', function(e) {
         gameStart();
         document.getElementById('menu').className = 'close';
     });
+
+//Get a random Int value between two values (inclusive max)
+function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min +1)) + min;
+}

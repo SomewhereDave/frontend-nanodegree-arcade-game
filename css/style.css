@@ -28,8 +28,9 @@ body {
     align-items: top;
 }
 
-.highTime {
+.high-time {
     color: #f00;
+    font-weight: 700;
 }
 
 #menu {
@@ -40,11 +41,12 @@ body {
     border: 3px solid #aaa;
     border-radius: 5px;
     position: absolute;
-    transition: transform 0.9s ease-out;
+    transition: transform 1.5s cubic-bezier(0, 0, 0.0, 1.0);
 }
 
 #menu h2 {
-    margin-top: 250px;
+    margin-top: 150px;
+    font-size: 2.5em;
 }
 
 .close {
@@ -55,7 +57,25 @@ body {
     transform: translate(-50%, -75px);
 }
 
+#player-select {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-around;
+    }
+
+#player-select img {
+    cursor: pointer;
+    width: 76px;
+    height: 128px;
+}
+
+.border {
+    border: 3px solid #25d162;
+    border-radius: 5px;
+}
+
 button#newGame {
+    margin-top: 50px;
     width: 150px;
     height: 50px;
     font-size: 1.5em;

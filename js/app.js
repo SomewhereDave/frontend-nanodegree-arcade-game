@@ -2,7 +2,8 @@ let allEnemies = [],
     player,
     enemy,
     gem,
-    countdown;
+    countdown,
+    skin = 'images/char-boy.png';
 
 // Enemies our player must avoid
 var Enemy = function(location, speed) {
@@ -56,8 +57,8 @@ Enemy.prototype = {
 // Now write your own player class
 // This class requires an update(), render() and
 // a handleInput() method.
-var Player = function(lifes) {
-    this.sprite = 'images/char-boy.png',
+var Player = function(skin) {
+    this.sprite = skin,
     //Center Player as (canvas.width - image-width)/2
     this.x = (505 - 101)/2,
     this.y = 83*5 -18,
@@ -102,65 +103,77 @@ Player.prototype = {
         }
     },
 
+    //Check for collision between player and gem
     checkGemCollision: function() {
-        //Check for collision between player and bug
-        //Axis-Aligned Bounding Box
+        //Axis-Aligned Bounding Box Algorithm
         if (this.x < gem.x + 101 &&
             this.x + 101 > gem.x &&
             //lower gem side overlaps upper player side
             this.y + (171 - 88) < gem.y + (171 - 5) &&
             //lower player side overlaps upper gem side
             this.y + (171 - 18) > gem.y + (171 - 112) + 24) {
-                //Collision
+                //Collision detected
+                //Adjust score
                 this.addToScore();
                 document.getElementById('score').innerText = this.score.toString();
+                //Generate new gem
                 gem = new Gem(getRandomInt(1,3));
         }
     },
 
+    //Check for collision between player and bug
     checkBugCollison: function() {
-        //Check for collision between player and bug
-        //Axis-Aligned Bounding Box
+        //Loop over all bugs
         for(var i = 0; i < allEnemies.length; i++) {
-
+            //Axis-Aligned Bounding Box Algorithm
             if(this.x < allEnemies[i].x + 50 &&
                 this.x + 50 > allEnemies[i].x &&
                 this.y + 120 < allEnemies[i].y + (171-18) &&
                 this.y + (171-18) > allEnemies[i].y + 120) {
-                    //Collision
+                    //Collision detected
+                    //Reset player position
                     this.x = (505 - 101)/2;
                     this.y = 83*5 - 18;
+                    //Remove a life
                     this.removeLife();
             }
         }
     },
 
+    //Helper function
     update: function() {
         this.checkBugCollison();
         this.checkGemCollision();
     },
 
+    //Adds to player score
     addToScore: function() {
         this.score += gem.points;
     },
 
+    //Adds a life
     addLife() {
-        if(this.lifes < 5) {
+        //Add life to stats menu
         var parent = document.getElementById('lifes');
-            var child = document.createElement('img');
+        var child = document.createElement('img');
             child.setAttribute('src','images/Heart.png'),
             child.setAttribute('width', '20');
             child.setAttribute('height', '34');
             parent.appendChild(child);
-            this.lifes++;
-        }
+        //Increase player's internal life counter
+        this.lifes++;
     },
 
+    //Removes a life
     removeLife() {
-        var parent = document.getElementById('lifes');
-        var child = document.querySelector('#lifes img:last-child');
-        parent.removeChild(child);
-        this.lifes--;
+        //Remove life from stats counter
+        if(this.lifes > 0) {
+            var parent = document.getElementById('lifes');
+            var child = document.querySelector('#lifes img:last-child');
+            parent.removeChild(child);
+            this.lifes--;
+        }
+        //If dead -> game over
         if(this.lifes === 0) {
             gameOver();
         }
@@ -193,12 +206,13 @@ var Gem = function(colorCode,x,y) {
     }
 }
 
-//Get a random row to place the gem
 Gem.prototype = {
+    //Get a random row to place the gem
     getRandomRow: function() {
         var row = Math.floor((Math.random()  * (5 - 1) + 1));
         return (83 * row) - 28;
     },
+    //Get a random column to place the gem
     getRandomColumn: function() {
         var column = Math.floor(Math.random() * 5);
         return  101 * column;
@@ -210,11 +224,10 @@ Gem.prototype = {
 
 
 
-
 //Countdown to keep track of round
-var Countdown = function(deadline, placement) {
+var Countdown = function(deadline, position) {
     this.deadline = deadline;
-    this.placement = document.getElementById(placement);
+    this.position = document.getElementById(position);
     this.interval = this.start();
 }
 
@@ -222,25 +235,26 @@ Countdown.prototype = {
     get: function() {
         return this.deadline;
     },
+    //Initiates the countdown
     start: function() {
-        this.placement.innerText = this.deadline;
-        var self = this;
+        //Place countdown in stats menu
+        this.position.innerText = this.deadline;
+        //Decrease counter by one every second
         var timeInterval = setInterval( function () {
-            self.deadline--;
-            self.placement.innerText = self.deadline;
-            if(self.deadline === 3) {
-                self.placement.className = 'highTime';
+            this.deadline--;
+            //Highlight counter when nearing zero
+            this.position.innerText = this.deadline;
+            if(this.deadline === 3) {
+                this.position.classList.add('high-time');
             }
-            if(self.deadline === 0) {
-                self.placement.className = '';
+            //End game if countdown is over
+            if(this.deadline === 0) {
+                this.position.classList.remove('high-time');
                 clearInterval(timeInterval);
                 gameOver();
             }
-        }, 1000);
+        }.bind(this), 1000);
         return timeInterval;
-    },
-    add: function(seconds) {
-        this.deadline += seconds;
     }
 }
 
@@ -252,28 +266,32 @@ Countdown.prototype = {
 function gameStart() {
     //Reset score trackers
     document.getElementById('score').innerText = '0';
-    document.getElementById('finalScore').innerText = '0';
+    document.getElementById('final-score').innerText = '0';
+
     allEnemies = [];
     function initEnemies(row) {
         bug = new Enemy({x:-101,y:(83 * row) -18});
         allEnemies.push(bug);
     }
-    var bugs = 0;
-    for( var i = 1; i <= bugs.length; i++) {
+    //Place desired number of bugs on the canvas
+    var bugs = 4;
+    for( var i = 1; i <= bugs; i++) {
         initEnemies(i);
     }
-    player = new Player();
+    player = new Player(skin);
     gem = new Gem(getRandomInt(1,3));
-    countdown = new Countdown(3, 'timer');
+    countdown = new Countdown(20, 'timer');
 }
 //Initial start
 gameStart();
 
-//Stop Game and open menu
-//if player runs out of time or lifes
+//Stop Game and open menu when player runs out of time or lifes
 function gameOver() {
+    //Open game over menu
     document.getElementById('menu').className = 'open';
-    document.getElementById('finalScore').innerText = player.score.toString();
+    //Add final score to game over menu
+    document.getElementById('final-score').innerText = player.score.toString();
+    //Reset displayed lifes in the stats menu
     while(player.lifes > 0) {
         player.removeLife();
     }
@@ -294,16 +312,34 @@ document.addEventListener('keyup', function(e) {
     player.handleInput(allowedKeys[e.keyCode]);
 });
 
-//Add Event Handler to the New Game button
-//to start a new game
-    document.getElementById('newGame').addEventListener('click', function() {
-        gameStart();
-        document.getElementById('menu').className = 'close';
-    });
-
 //Get a random Int value between two values (inclusive max)
+//Used for object placement on the canvas
 function getRandomInt(min, max) {
   min = Math.ceil(min);
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min +1)) + min;
 }
+
+//Add Event Handler to the New Game button
+//to start a new game
+document.getElementById('newGame').addEventListener('click', function() {
+    gameStart();
+    //Close game over menu
+    document.getElementById('menu').className = 'close';
+});
+
+//Player Select
+//Add Click Listeners to all player skin divs
+Array.from(document.querySelectorAll('.player img')).forEach(function(item){
+    item.addEventListener('click', function(e) {
+        //Deselect previously selected player skin
+        Array.from(document.querySelectorAll('.player')).forEach(function(el){
+            if(el.classList.contains('border')) {
+                el.classList.remove('border');
+            }
+        });
+        //Select new player skin
+        item.parentElement.classList.add('border');
+        skin = item.getAttribute('src');
+    });
+});

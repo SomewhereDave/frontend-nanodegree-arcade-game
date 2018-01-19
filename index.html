@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Effective JavaScript: Frogger</title>
+    <title>Effective JavaScript: Classic Arcade</title>
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css?family=Montserrat:400" rel="stylesheet">
 </head>
@@ -17,15 +17,21 @@
             <strong>Timer</strong>
             <div id="timer"></div>
         </div>
-        <div class="Points">
+        <div>
             <strong>Score</strong>
             <div id="score">0</div>
         </div>
     </div>
 
-    <div  id="menu" class="close">
+    <div id="menu" class="close">
         <h2>Game Over</h2>
-        <p>You scored <span id="finalScore"></span> points</p>
+        <p>You scored <span id="final-score"></span> points</p>
+        <div id="player-select">
+            <div class="player border"><img src="images/char-boy.png"></div>
+            <div class="player"><img src="images/char-cat-girl.png"></div>
+            <div class="player"><img src="images/char-horn-girl.png"></div>
+            <div class="player"><img src="images/char-pink-girl.png"></div>
+        </div>
         <button id="newGame">New Game</button>
     </div>
 

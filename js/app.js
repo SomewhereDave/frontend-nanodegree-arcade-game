@@ -270,7 +270,7 @@ function gameStart() {
 
     allEnemies = [];
     function initEnemies(row) {
-        bug = new Enemy({x:-101,y:(83 * row) -18});
+        bug = new Enemy({x:-101, y:(83 * row) -18});
         allEnemies.push(bug);
     }
     //Place desired number of bugs on the canvas
